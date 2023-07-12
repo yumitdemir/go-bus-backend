@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\go-bus-backend.props" />
+</Project>

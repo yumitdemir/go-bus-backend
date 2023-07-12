@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "9mFN5mfPafKpkkEJ41hELbxVTFe3dom+TX/FbJwyUoc=",
+  "Source": "go-bus-backend",
+  "BasePath": "_content/go-bus-backend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
