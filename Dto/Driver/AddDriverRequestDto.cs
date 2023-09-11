@@ -1,11 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace go_bus_backend.Dto.Driver;
 
-namespace go_bus_backend.Models;
-
-public class Driver
+public class AddDriverRequestDto
 {
-    [Key]
-    public int Id { get; set; }
     public string Name { get; set; }
     public string Surname { get; set; }
 
@@ -15,6 +11,5 @@ public class Driver
     
     public string ContactNumber { get; set; }
 
-    public bool DriverStatus { get; set; }
+    public string DriverStatus { get; set; }
 }
-

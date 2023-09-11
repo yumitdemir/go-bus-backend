@@ -15,7 +15,7 @@ public class BusRepository : IBusRepository
         _context = context;
     }
 
-    public async Task<GetAllAsyncDto> GetAllAsync(string? filterOn = null, string? filterQuery = null,
+    public async Task<BusGetAllAsyncDto> GetAllAsync(string? filterOn = null, string? filterQuery = null,
         string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 10)
     {
         var buses = _context.Buses.AsQueryable();
@@ -38,27 +38,27 @@ public class BusRepository : IBusRepository
                 buses = isAscending ? buses.OrderBy(x => x.Brand) : buses.OrderByDescending(x => x.Brand);
             } else if (sortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.Id) : buses.OrderByDescending(x => x.Brand);
+                buses = isAscending ? buses.OrderBy(x => x.Id) : buses.OrderByDescending(x => x.Id);
             } else if (sortBy.Equals("Model", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.Model) : buses.OrderByDescending(x => x.Brand);
+                buses = isAscending ? buses.OrderBy(x => x.Model) : buses.OrderByDescending(x => x.Model);
             }else if (sortBy.Equals("Capacity", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.Capacity) : buses.OrderByDescending(x => x.Brand);
+                buses = isAscending ? buses.OrderBy(x => x.Capacity) : buses.OrderByDescending(x => x.Capacity);
             }
             else if (sortBy.Equals("Restroom Available", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.RestroomAvailable) : buses.OrderByDescending(x => x.Brand);
+                buses = isAscending ? buses.OrderBy(x => x.RestroomAvailable) : buses.OrderByDescending(x => x.RestroomAvailable);
             } else if (sortBy.Equals("WiFi Available", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.WiFiAvailable) : buses.OrderByDescending(x => x.Brand);
+                buses = isAscending ? buses.OrderBy(x => x.WiFiAvailable) : buses.OrderByDescending(x => x.WiFiAvailable);
             }
             else if (sortBy.Equals("Last Maintenance", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.LastMaintenanceDate) : buses.OrderByDescending(x => x.Brand);
+                buses = isAscending ? buses.OrderBy(x => x.LastMaintenanceDate) : buses.OrderByDescending(x => x.LastMaintenanceDate);
             }else if (sortBy.Equals("Plate Number", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.PlateNumber) : buses.OrderByDescending(x => x.Brand);
+                buses = isAscending ? buses.OrderBy(x => x.PlateNumber) : buses.OrderByDescending(x => x.PlateNumber);
             }
         }
 
@@ -71,7 +71,7 @@ public class BusRepository : IBusRepository
 
         // Calculate the biggest page number
         var biggestPageNumber = (int)Math.Ceiling((double)totalCount / pageSize);
-        var getAllAsyncDto = new GetAllAsyncDto()
+        var getAllAsyncDto = new BusGetAllAsyncDto()
         {
             Buses = pagedBuses,
             BiggestPageNumber = biggestPageNumber
