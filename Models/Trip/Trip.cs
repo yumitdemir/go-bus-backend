@@ -3,7 +3,6 @@
 public class Trip
 {
     public int Id { get; set; }
-    public ICollection<TripStop> TripStops { get; set; }
-    public Bus Bus { get; set; }
+    public Route Route { get; set; }
     public decimal PricePerKm { get; set; }
 }

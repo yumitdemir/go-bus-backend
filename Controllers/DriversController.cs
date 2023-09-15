@@ -10,10 +10,12 @@ namespace go_bus_backend.Controllers;
 public class DriversController : ControllerBase
 {
     private readonly IDriverRepository _driverRepository;
+  
 
     public DriversController(IDriverRepository driverRepository)
     {
         _driverRepository = driverRepository;
+       
     }
 
     [HttpPost]
@@ -36,6 +38,8 @@ public class DriversController : ControllerBase
     [HttpPut]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateDriverRequestDto updateDriverRequestDto)
     {
+        
+        
         var bus = new Driver()
         {
             Name = updateDriverRequestDto.Name,

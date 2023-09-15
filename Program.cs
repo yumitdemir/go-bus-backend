@@ -25,6 +25,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IBusRepository, BusRepository>();
 builder.Services.AddScoped<IDriverRepository, DriverRepository>();
+builder.Services.AddScoped<IBusStopRepository, BusStopRepository>();
+builder.Services.AddScoped<IRouteRepository, RouteRepository>();
+builder.Services.AddScoped<IRouteSegmentRepository, RouteSegmentRepository>();
+
 
 builder.Services.AddDbContext<DataContext>(options =>
 {
