@@ -16,18 +16,19 @@ public class RouteRepository : IRouteRepository
     {
         _context = context;
     }
-  
-     public async Task<RouteGetAllAsyncDto> GetAllAsync(string? filterOn = null, string? filterQuery = null,
+
+    public async Task<RouteGetAllAsyncDto> GetAllAsync(string? filterOn = null, string? filterQuery = null,
         string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 10)
     {
-        var routes = _context.Routes.AsQueryable();
-        
+        var routes = _context.Routes.Include(r => r.BusStops)
+            .Include(r => r.RouteSegments).AsQueryable();
+
         // Filtering
         if (!string.IsNullOrWhiteSpace(filterQuery))
         {
             routes = routes.Where(x =>
                 x.RouteName.Contains(filterQuery) ||
-                x.Id.ToString() == filterQuery 
+                x.Id.ToString() == filterQuery
             );
         }
 
@@ -37,10 +38,11 @@ public class RouteRepository : IRouteRepository
             if (sortBy.Equals("Route Name", StringComparison.OrdinalIgnoreCase))
             {
                 routes = isAscending ? routes.OrderBy(x => x.RouteName) : routes.OrderByDescending(x => x.RouteName);
-            } else if (sortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
+            }
+            else if (sortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
             {
                 routes = isAscending ? routes.OrderBy(x => x.Id) : routes.OrderByDescending(x => x.Id);
-            } 
+            }
         }
 
         // Calculate the total count of buses (before pagination)
@@ -63,7 +65,8 @@ public class RouteRepository : IRouteRepository
 
     public async Task<Route?> GetById(int id)
     {
-        var route = await _context.Routes.FirstOrDefaultAsync(x => x.Id == id);
+        var route = await _context.Routes.Include(r => r.BusStops).Include(r => r.RouteSegments)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         return route;
     }
@@ -86,7 +89,7 @@ public class RouteRepository : IRouteRepository
         existingRoute.RouteName = route.RouteName;
         existingRoute.RouteSegments = route.RouteSegments;
         existingRoute.BusStops = route.BusStops;
-       
+
 
         await _context.SaveChangesAsync();
         return existingRoute;
@@ -94,16 +97,14 @@ public class RouteRepository : IRouteRepository
 
     public async Task<Route?> DeleteAsync(int id)
     {
-        var existingRoute = await _context.Routes.FirstOrDefaultAsync(x => x.Id == id);
+        var existingRoute = await _context.Routes.Include(r => r.BusStops).Include(r => r.RouteSegments).FirstOrDefaultAsync(x => x.Id == id);
         if (existingRoute == null)
         {
             return null;
         }
-
+        _context.RouteSegments.RemoveRange(existingRoute.RouteSegments);
         _context.Remove(existingRoute);
         await _context.SaveChangesAsync();
         return existingRoute;
     }
-
- 
 }

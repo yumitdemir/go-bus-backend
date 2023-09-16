@@ -55,6 +55,15 @@ public class BusStopController : ControllerBase
     }
 
     [HttpGet]
+    [Route("GetAllBusStops")]
+    public async Task<IActionResult> GetAllBusStops()
+    {
+        var busStops = await _busStopRepository.GetAllWithoutFilterAsync();
+        return Ok(busStops);
+    }
+
+    
+    [HttpGet]
     public async Task<IActionResult> GetBusStops([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)

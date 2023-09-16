@@ -34,7 +34,7 @@ public class RouteSegmentController : ControllerBase
             Distance = addRouteSegmentRequestDto.Distance,
             Duration = TimeSpan.FromMinutes(double.Parse(addRouteSegmentRequestDto.Duration))
         };
-        var createSegment = await _routeSegmentRepository.CreateAsync(routeSegment);
-        return Ok(createSegment);
+        var createdSegment = await _routeSegmentRepository.CreateAsync(routeSegment);
+        return Ok(createdSegment);
     }
 }

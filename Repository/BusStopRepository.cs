@@ -15,6 +15,13 @@ public class BusStopRepository : IBusStopRepository
     {
         _context = context;
     }
+
+    public async Task<ICollection<BusStop>> GetAllWithoutFilterAsync()
+    {
+        var busStops = await _context.BusStops.ToListAsync();
+        return busStops;
+    }
+    
     
       public async Task<BusStopGetAllAsyncDto> GetAllAsync(string? filterOn = null, string? filterQuery = null,
         string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 10)
