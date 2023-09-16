@@ -19,6 +19,7 @@ public class DataContext : DbContext
     public DbSet<Route> Routes { get; set; }
     public DbSet<RouteSegment> RouteSegments { get; set; }
     public DbSet<TripSegment> TripSegments { get; set; }
+    public DbSet<Passanger> Passangers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

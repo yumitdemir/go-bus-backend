@@ -28,6 +28,7 @@ builder.Services.AddScoped<IDriverRepository, DriverRepository>();
 builder.Services.AddScoped<IBusStopRepository, BusStopRepository>();
 builder.Services.AddScoped<IRouteRepository, RouteRepository>();
 builder.Services.AddScoped<IRouteSegmentRepository, RouteSegmentRepository>();
+builder.Services.AddScoped<ITripRepository, TripRepository>();
 
 
 builder.Services.AddDbContext<DataContext>(options =>
