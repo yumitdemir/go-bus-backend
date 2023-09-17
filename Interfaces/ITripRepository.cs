@@ -21,4 +21,9 @@ public interface ITripRepository
     public Task<Trip> AddPassangerToTripAsync(int tripId, int PassangerId,
         int departureBusStop, int arrivalBusStop);
 
+    public Task<ICollection<Trip>?> GetAllTrips(int departureStopId, int arrivalStopId, DateOnly departureDate,
+        int passangerCount);
+
+
+
 }
