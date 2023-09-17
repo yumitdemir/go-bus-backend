@@ -20,8 +20,10 @@ public class RouteRepository : IRouteRepository
     public async Task<RouteGetAllAsyncDto> GetAllAsync(string? filterOn = null, string? filterQuery = null,
         string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 10)
     {
-        var routes = _context.Routes.Include(r => r.BusStops)
-            .Include(r => r.RouteSegments).AsQueryable();
+        var routes = _context.Routes
+            .Include(r => r.RouteSegments).ThenInclude(r => r.ArrivalStop)
+            .Include(r => r.RouteSegments).ThenInclude(r => r.DepartureStop)
+            .AsQueryable();
 
         // Filtering
         if (!string.IsNullOrWhiteSpace(filterQuery))
@@ -65,7 +67,8 @@ public class RouteRepository : IRouteRepository
 
     public async Task<Route?> GetById(int id)
     {
-        var route = await _context.Routes.Include(r => r.BusStops).Include(r => r.RouteSegments)
+        var route = await _context.Routes.Include(r => r.RouteSegments).ThenInclude(r => r.ArrivalStop)
+            .Include(r => r.RouteSegments).ThenInclude(r => r.DepartureStop)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return route;
@@ -88,8 +91,6 @@ public class RouteRepository : IRouteRepository
 
         existingRoute.RouteName = route.RouteName;
         existingRoute.RouteSegments = route.RouteSegments;
-        existingRoute.BusStops = route.BusStops;
-
 
         await _context.SaveChangesAsync();
         return existingRoute;
@@ -97,11 +98,13 @@ public class RouteRepository : IRouteRepository
 
     public async Task<Route?> DeleteAsync(int id)
     {
-        var existingRoute = await _context.Routes.Include(r => r.BusStops).Include(r => r.RouteSegments).FirstOrDefaultAsync(x => x.Id == id);
+        var existingRoute = await _context.Routes.Include(r => r.RouteSegments).ThenInclude(r => r.ArrivalStop)
+            .Include(r => r.RouteSegments).ThenInclude(r => r.DepartureStop).FirstOrDefaultAsync(x => x.Id == id);
         if (existingRoute == null)
         {
             return null;
         }
+
         _context.RouteSegments.RemoveRange(existingRoute.RouteSegments);
         _context.Remove(existingRoute);
         await _context.SaveChangesAsync();

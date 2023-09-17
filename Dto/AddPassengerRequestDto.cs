@@ -1,11 +1,11 @@
-﻿namespace go_bus_backend.Models;
+﻿namespace go_bus_backend.Dto;
 
-public class Passanger
+public class AddPassengerRequestDto
 {
-    public int Id { get; set; }
     public string Name { get; set; }
     public string Surname { get; set; }
     public string PhoneNumber { get; set; }
     public string Email { get; set; }
     public int SeatNumber { get; set; }
+
 }

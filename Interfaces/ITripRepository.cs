@@ -13,6 +13,12 @@ public interface ITripRepository
     public Task<Trip> CreateAsync(Trip trip);
     public Task<Trip?> GetById(int id);
     public Task<TripSegment?> CreateTripSegmentAsync(TripSegment tripSegment);
+
+    public  Task<TripSegment?> GetTripSegmentById(int id);
     public  Task<Trip?> UpdateAsync(int id, Trip trip);
+    public  Task<List<Trip>?> FindTripsByBusStops(BusStop departureStop, BusStop arrivalStop);
+
+    public Task<Trip> AddPassangerToTripAsync(int tripId, int PassangerId,
+        int departureBusStop, int arrivalBusStop);
 
 }

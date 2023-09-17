@@ -18,7 +18,7 @@ public class RouteSegmentRepository : IRouteSegmentRepository
     
     public async Task<RouteSegment?> GetByIdAsync(int id)
     {
-        var routeSegment = await _context.RouteSegments.FirstOrDefaultAsync(x => x.Id == id);
+        var routeSegment = await _context.RouteSegments.Include(r=> r.ArrivalStop).Include(r=> r.DepartureStop).FirstOrDefaultAsync(x => x.Id == id);
         return routeSegment;
     }
 

@@ -3,6 +3,5 @@
 public class UpdateRouteRequestDto
 {
     public string RouteName { get; set; }
-    public ICollection<Models.RouteSegment> RouteSegments { get; set; }
-    public  ICollection<Models.BusStop> BusStops { get; set; }
+    public ICollection<int> RouteSegmentIds { get; set; }
 }
