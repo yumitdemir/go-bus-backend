@@ -23,7 +23,7 @@ public class TripRepository : ITripRepository
         string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 10)
     {
         var trips = _context.Trips
-            .Include(r=> r.Bus)
+            .Include(r => r.Bus)
             .Include(t => t.Route)
             .ThenInclude(r => r.RouteSegments)
             .ThenInclude(rs => rs.DepartureStop) // Include DepartureStop from RouteSegment
@@ -73,7 +73,7 @@ public class TripRepository : ITripRepository
     public async Task<Trip?> GetById(int id)
     {
         var trip = await _context.Trips
-            .Include(r=> r.Bus)
+            .Include(r => r.Bus)
             .Include(t => t.Route)
             .ThenInclude(r => r.RouteSegments)
             .ThenInclude(rs => rs.DepartureStop) // Include DepartureStop from RouteSegment
@@ -97,8 +97,7 @@ public class TripRepository : ITripRepository
     public async Task<Trip?> UpdateAsync(int id, Trip trip)
     {
         var existingTrip = await _context.Trips
-            .Include(r=> r.Bus)
-
+            .Include(r => r.Bus)
             .Include(t => t.Route)
             .ThenInclude(r => r.RouteSegments)
             .ThenInclude(rs => rs.DepartureStop) // Include DepartureStop from RouteSegment
@@ -125,8 +124,7 @@ public class TripRepository : ITripRepository
     public async Task<Trip?> DeleteAsync(int id)
     {
         var existingTrip = await _context.Trips
-            .Include(r=> r.Bus)
-
+            .Include(r => r.Bus)
             .Include(t => t.Route)
             .ThenInclude(r => r.RouteSegments)
             .ThenInclude(rs => rs.DepartureStop) // Include DepartureStop from RouteSegment
@@ -177,7 +175,7 @@ public class TripRepository : ITripRepository
     public async Task<List<Trip>?> FindTripsByBusStops(BusStop departureStop, BusStop arrivalStop)
     {
         var trips = await _context.Trips
-            .Include(r=> r.Bus)
+            .Include(r => r.Bus)
             .Include(t => t.Route)
             .ThenInclude(r => r.RouteSegments)
             .ThenInclude(rs => rs.DepartureStop) // Include DepartureStop from RouteSegment
@@ -200,13 +198,132 @@ public class TripRepository : ITripRepository
         return matchingTrips;
     }
 
+    public async Task<List<TripSegment>> GetListofTripSegmentsByStops(int departureStopId, int arrivalStopId,
+        int tripId)
+    {
+        var trip = await _context.Trips
+            .Include(r => r.Bus)
+            .Include(t => t.Route)
+            .ThenInclude(r => r.RouteSegments)
+            .ThenInclude(rs => rs.DepartureStop) // Include DepartureStop from RouteSegment
+            .Include(t => t.Route)
+            .ThenInclude(r => r.RouteSegments).ThenInclude(r => r.ArrivalStop)
+            .Include(r => r.TripSegments)
+            .ThenInclude(r => r.RouteSegment).ThenInclude(r => r.DepartureStop)
+            .Include(r => r.TripSegments)
+            .ThenInclude(r => r.RouteSegment).ThenInclude(r => r.ArrivalStop)
+            .FirstOrDefaultAsync(t => t.Id == tripId);
+
+        if (trip == null)
+        {
+            return null;
+        }
+
+        bool foundDeparture = false;
+        var tripSegments = new List<TripSegment>();
+        foreach (var tripSegment in trip.TripSegments)
+        {
+            if (tripSegment.RouteSegment.DepartureStopId == departureStopId)
+            {
+                foundDeparture = true;
+            }
+
+            if (foundDeparture)
+            {
+                tripSegments.Add(tripSegment);
+            }
+
+            if (tripSegment.RouteSegment.ArrivalStopId == arrivalStopId)
+            {
+                foundDeparture = false;
+            }
+        }
+
+
+        return tripSegments;
+    }
+
+    public async Task<TimeSpan> CalculateDurationOfTrip(int departureStopId, int arrivalStopId, int tripId)
+    {
+        var tripSegments = await GetListofTripSegmentsByStops(departureStopId, arrivalStopId, tripId);
+        TimeSpan duration = new TimeSpan(0);
+        foreach (var tripSegment in tripSegments)
+        {
+            duration = duration + tripSegment.RouteSegment.Duration;
+        }
+
+        return duration;
+    }
+
+    public async Task<DateTime> getStartDateTimeOfTheTrip(int busStopId, int tripId)
+    {
+        var trip = await GetById(tripId);
+
+        bool foundDeparture = true;
+        var departureDateTime = trip.DepartureDate;
+        foreach (var tripSegment in trip.TripSegments)
+        {
+            if (foundDeparture)
+            {
+                departureDateTime = departureDateTime + tripSegment.RouteSegment.Duration;
+            }
+
+            if (tripSegment.RouteSegment.DepartureStopId == busStopId)
+            {
+                foundDeparture = false;
+            }
+        }
+
+        return departureDateTime;
+    }
+
+    public async Task<DateTime> getEndDateTimeOfTheTrip(int arrivalbusStopId, int departurebusStopId, int tripId)
+    {
+        var startDate = await getStartDateTimeOfTheTrip(departurebusStopId, tripId);
+        var duration = await CalculateDurationOfTrip(departurebusStopId, arrivalbusStopId, tripId);
+
+        return startDate + duration;
+    }
+
+    public async Task<bool> CheckEnoughSpaceInBus(int departureStopId, int arrivalStopId, int tripId,
+        int passangerCount)
+    {
+        var trip = await GetById(tripId);
+
+        var tripSegments = await GetListofTripSegmentsByStops(departureStopId, arrivalStopId, tripId);
+        bool isAvailableFlag = true;
+        var foundDeparture = false;
+
+        foreach (var tripSegment in tripSegments)
+        {
+            if (tripSegment.RouteSegment.DepartureStopId == departureStopId)
+            {
+                foundDeparture = true;
+            }
+
+            if (foundDeparture)
+            {
+                if (tripSegment.PassangerCount + passangerCount > trip.Bus.Capacity)
+                {
+                    isAvailableFlag = false;
+                }
+            }
+
+            if (tripSegment.RouteSegment.ArrivalStopId == arrivalStopId)
+            {
+                foundDeparture = false;
+            }
+        }
+
+        return isAvailableFlag;
+    }
+
 
     public async Task<Trip> AddPassangerToTripAsync(int tripId, int passengerId,
         int departureBusStop, int arrivalBusStop)
     {
-        var passenger = _context.Passengers.FirstOrDefault(x => x.Id == passengerId);
         var trip = await _context.Trips
-            .Include(r=> r.Bus)
+            .Include(r => r.Bus)
             .Include(t => t.Route)
             .ThenInclude(r => r.RouteSegments)
             .ThenInclude(rs => rs.DepartureStop) // Include DepartureStop from RouteSegment
@@ -248,7 +365,8 @@ public class TripRepository : ITripRepository
         return trip;
     }
 
-    public async Task<ICollection<Trip>?> GetAllTrips(int departureStopId, int arrivalStopId, DateOnly departureDate,
+    public async Task<ICollection<Trip>?> GetAllTrips(int departureStopId, int arrivalStopId,
+        DateOnly departureDate,
         int passangerCount)
     {
         var derpartureStop = await _busStopRepository.GetById(departureStopId);
@@ -267,35 +385,12 @@ public class TripRepository : ITripRepository
         bool foundDeparture = false;
         foreach (var trip in trips)
         {
-            bool isAvailableFlag = true;
-            foreach (var tripSegment in trip.TripSegments)
-            {
-                if (tripSegment.RouteSegment.DepartureStopId == departureStopId)
-                {
-                    foundDeparture = true;
-                }
-                
-                if (foundDeparture)
-                {
-                    if (tripSegment.PassangerCount + passangerCount > trip.Bus.Capacity )
-                    {
-                        isAvailableFlag = false;
-                    }
-                }
-                
-                if (tripSegment.RouteSegment.ArrivalStopId == arrivalStopId)
-                {
-                    foundDeparture = false;
-                }
-            }
-            if(isAvailableFlag)
+            var isAvailable = await CheckEnoughSpaceInBus(departureStopId, arrivalStopId, trip.Id, passangerCount);
+            if (isAvailable)
                 tempTrips.Add(trip);
         }
-        
-        trips = tempTrips;
-        
-        
 
+        trips = tempTrips;
         return trips;
     }
 }
