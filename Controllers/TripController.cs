@@ -59,34 +59,92 @@ public class TripController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddTripRequestDto addTripRequestDto)
     {
+        var startDate = DateTime.Parse(addTripRequestDto.StartDate);
+        var lastAvailableDate = DateTime.Parse(addTripRequestDto.LastAvailableDate);
+        var unavailableDates = addTripRequestDto.UnavailableDates.Select(DateTime.Parse).ToList();
+        var daysOfWeek = addTripRequestDto.DayOfWeek.Select(d => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), d)).ToList();
+        var timesOfDay = addTripRequestDto.TimeOfDay.Select(TimeSpan.Parse).ToList();
+        
+        
         var route = await _routeRepository.GetById(addTripRequestDto.RouteId);
         var bus = await _busRepository.GetById(addTripRequestDto.BusId);
-        var tripSegments = new List<TripSegment>();
+        
+        
+        
+        var createdTrip = new Trip();
+        var tripsCreated = new List<Trip>();
+        // Add one static trip
+        // if (addTripRequestDto.DepartureDate == null)
+        // {
+        //     var tripSegments = new List<TripSegment>();
+        //     if (route != null)
+        //         foreach (var routeSegment in route.RouteSegments)
+        //         {
+        //             var tripSegment = new TripSegment()
+        //             {
+        //                 RouteSegment = routeSegment,
+        //             };
+        //
+        //             var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
+        //             if (createdTripSegment != null) tripSegments.Add(createdTripSegment);
+        //         }
+        //
+        //
+        //     var trip = new Trip()
+        //     {
+        //         Route = route,
+        //         Bus = bus,
+        //         DepartureDate = addTripRequestDto.DepartureDate,
+        //         PricePerKm = addTripRequestDto.PricePerKm,
+        //         TripSegments = tripSegments
+        //     };
+        //
+        //     createdTrip = await _tripRepository.CreateAsync(trip);
+        // }
 
-        if (route != null)
-            foreach (var routeSegment in route.RouteSegments)
+    
+            // Start from the StartDate and create trips until the LastAvailableDate
+            for (var date = startDate; date <= lastAvailableDate; date = date.AddDays(1))
             {
-                var tripSegment = new TripSegment()
+                // Check if the current day is one of the selected days
+                if (daysOfWeek.Contains(date.DayOfWeek) && !unavailableDates.Contains(date))
                 {
-                    RouteSegment = routeSegment,
-                };
+                    // For each selected time of day, create a new trip
+                    foreach (var timeOfDay in timesOfDay)
+                    {
+                        var departureDate = date + timeOfDay;
 
-                var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
-                if (createdTripSegment != null) tripSegments.Add(createdTripSegment);
+                        var tripSegments = new List<TripSegment>();
+                        if (route != null)
+                            foreach (var routeSegment in route.RouteSegments)
+                            {
+                                var tripSegment = new TripSegment()
+                                {
+                                    RouteSegment = routeSegment,
+                                };
+
+                                var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
+                                if (createdTripSegment != null) tripSegments.Add(createdTripSegment);
+                            }
+
+                        var trip = new Trip()
+                        {
+                            Route = route,
+                            Bus = bus,
+                            DepartureDate = departureDate,
+                            PricePerKm = addTripRequestDto.PricePerKm,
+                            TripSegments = tripSegments
+                        };
+
+                        var newTrip = await _tripRepository.CreateAsync(trip);
+                        tripsCreated.Add(newTrip);
+                    }
+                }
             }
+        
 
 
-        var trip = new Trip()
-        {
-            Route = route,
-            Bus = bus,
-            DepartureDate = addTripRequestDto.DepartureDate,
-            PricePerKm = addTripRequestDto.PricePerKm,
-            TripSegments = tripSegments
-        };
-
-        var createdDriver = await _tripRepository.CreateAsync(trip);
-        return Ok(trip);
+        return Ok(tripsCreated);
     }
 
     [HttpPut]
