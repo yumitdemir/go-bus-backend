@@ -255,6 +255,19 @@ public class TripRepository : ITripRepository
         return duration;
     }
 
+    public async Task<decimal> CalculatePriceOfTrip(int departureStopId, int arrivalStopId, int tripId)
+    {
+        var trip = await GetById(tripId);
+        var tripSegments = await GetListofTripSegmentsByStops(departureStopId, arrivalStopId, tripId);
+        decimal price = 0;
+        foreach (var tripSegment in tripSegments)
+        {
+            price = price + ((decimal)tripSegment.RouteSegment.Distance * trip.PricePerKm);
+        }
+
+        return price;
+    }
+
     public async Task<DateTime> getStartDateTimeOfTheTrip(int busStopId, int tripId)
     {
         var trip = await GetById(tripId);
@@ -284,6 +297,7 @@ public class TripRepository : ITripRepository
 
         return startDate + duration;
     }
+
 
     public async Task<bool> CheckEnoughSpaceInBus(int departureStopId, int arrivalStopId, int tripId,
         int passangerCount)

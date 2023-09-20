@@ -24,6 +24,38 @@ public class TripController : ControllerBase
         _tripRepository = tripRepository;
     }
 
+    [HttpGet]
+    [Route("GetTripsByFilters")]
+    public async Task<IActionResult> GetTripsByFilters([FromQuery] TripSearchRequestDto tripSearchRequestDto)
+    {
+        var trips = await _tripRepository.GetAllTrips(tripSearchRequestDto.departureStopId,
+            tripSearchRequestDto.arrivalStopId, DateOnly.Parse(tripSearchRequestDto.departureDate),
+            tripSearchRequestDto.passangerCount);
+        var tripAnswerList = new List<TripSearchAnswerDto>();
+        foreach (var trip in trips)
+        {
+            var tripSearchAnswerDto = new TripSearchAnswerDto()
+            {
+                TripId = trip.Id,
+                ArrivalStop = await _busStopRepository.GetById(tripSearchRequestDto.arrivalStopId),
+                DepartureStop = await _busStopRepository.GetById(tripSearchRequestDto.departureStopId),
+                Duration = await _tripRepository.CalculateDurationOfTrip(tripSearchRequestDto.departureStopId,
+                    tripSearchRequestDto.arrivalStopId, trip.Id),
+                DepartureTime =
+                    await _tripRepository.getStartDateTimeOfTheTrip(tripSearchRequestDto.departureStopId, trip.Id),
+                ArrivalTime = await _tripRepository.getEndDateTimeOfTheTrip(tripSearchRequestDto.arrivalStopId,
+                    tripSearchRequestDto.departureStopId, trip.Id),
+                Bus = trip.Bus,
+                Price = await _tripRepository.CalculatePriceOfTrip(tripSearchRequestDto.departureStopId,
+                    tripSearchRequestDto.arrivalStopId, trip.Id)
+            };
+            tripAnswerList.Add(tripSearchAnswerDto);
+        }
+
+
+        return Ok(tripAnswerList);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddTripRequestDto addTripRequestDto)
     {
@@ -56,14 +88,14 @@ public class TripController : ControllerBase
         var createdDriver = await _tripRepository.CreateAsync(trip);
         return Ok(trip);
     }
-    
+
     [HttpPut]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateTripRequestDto updateDriverRequestDto)
     {
         var route = await _routeRepository.GetById(updateDriverRequestDto.RouteId);
         var bus = await _busRepository.GetById(updateDriverRequestDto.BusId);
         var tripSegments = new List<TripSegment>();
-    
+
         if (route != null)
             foreach (var routeSegment in route.RouteSegments)
             {
@@ -74,8 +106,8 @@ public class TripController : ControllerBase
                 var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
                 if (createdTripSegment != null) tripSegments.Add(createdTripSegment);
             }
-    
-    
+
+
         var trip = new Trip()
         {
             Route = route,
@@ -84,18 +116,18 @@ public class TripController : ControllerBase
             PricePerKm = updateDriverRequestDto.PricePerKm,
             TripSegments = tripSegments
         };
-    
+
         var updatedTrip = await _tripRepository.UpdateAsync(id, trip);
         return Ok(updatedTrip);
     }
-    
+
     [HttpDelete]
     public async Task<IActionResult> Delete([FromBody] int id)
     {
         var deletedTrip = await _tripRepository.DeleteAsync(id);
         return Ok(deletedTrip);
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> GetDrivers([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
@@ -105,44 +137,41 @@ public class TripController : ControllerBase
             pageSize);
         return Ok(trips);
     }
-    
+
     [HttpGet("GetById")]
     public async Task<IActionResult> GetById(int id)
     {
         var bus = await _tripRepository.GetById(id);
         return Ok(bus);
     }
-    
-    
+
+
     [HttpGet]
     [Route("FindTrip")]
     public async Task<IActionResult?> FindTrips([FromQuery] FindTripRequestDto findTripRequestDto)
     {
         var departureStop = await _busStopRepository.GetById(findTripRequestDto.DepartureBusStopId);
         var arrivalStop = await _busStopRepository.GetById(findTripRequestDto.ArrivalBusStopId);
-        
+
         List<Trip>? trips = null;
         if (departureStop != null && arrivalStop != null)
         {
             trips = await _tripRepository.FindTripsByBusStops(departureStop, arrivalStop);
         }
-    
+
         return Ok(trips);
     }
-    
-    
+
+
     [HttpPut]
     [Route("AddPassangerToTrip")]
     public async Task<IActionResult?> AddPassangerToTrip(
         [FromBody] AddPassangerToTripRequestDto addPassangerToTripRequestDto)
     {
-        
         var trip = await _tripRepository.AddPassangerToTripAsync(addPassangerToTripRequestDto.TripId,
-            addPassangerToTripRequestDto.Passanger.Id, addPassangerToTripRequestDto.DepartureBusStopId, addPassangerToTripRequestDto.ArrivalBusStopId);
-    
+            addPassangerToTripRequestDto.Passanger.Id, addPassangerToTripRequestDto.DepartureBusStopId,
+            addPassangerToTripRequestDto.ArrivalBusStopId);
+
         return Ok(trip);
     }
-    
-    
-    
 }
