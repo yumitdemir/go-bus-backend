@@ -73,8 +73,8 @@ public class TripController : ControllerBase
         
         var createdTrip = new Trip();
         var tripsCreated = new List<Trip>();
-        // Add one static trip
-        // if (addTripRequestDto.DepartureDate == null)
+        
+        // if (addTripRequestDto.DepartureDate != null)
         // {
         //     var tripSegments = new List<TripSegment>();
         //     if (route != null)
@@ -100,6 +100,8 @@ public class TripController : ControllerBase
         //     };
         //
         //     createdTrip = await _tripRepository.CreateAsync(trip);
+        //     
+        //     return Ok(createdTrip);
         // }
 
     

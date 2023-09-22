@@ -333,8 +333,8 @@ public class TripRepository : ITripRepository
     }
 
 
-    public async Task<Trip> AddPassangerToTripAsync(int tripId, int passengerId,
-        int departureBusStop, int arrivalBusStop)
+    public async Task<Trip> AddPassangerToTripAsync(int tripId,
+        int departureBusStop, int arrivalBusStop,int passengerCount = 1)
     {
         var trip = await _context.Trips
             .Include(r => r.Bus)
@@ -365,7 +365,7 @@ public class TripRepository : ITripRepository
 
             if (foundDeparture)
             {
-                ++tripSegment.PassangerCount;
+                tripSegment.PassangerCount =tripSegment.PassangerCount + passengerCount;
             }
 
             if (tripSegment.RouteSegment.ArrivalStopId == arrivalBusStop)

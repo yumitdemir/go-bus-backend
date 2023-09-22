@@ -2,6 +2,7 @@ using System.ComponentModel;
 using go_bus_backend.Data;
 using go_bus_backend.Interfaces;
 using go_bus_backend.Repository;
+using go_bus_backend.Services;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -30,8 +31,11 @@ builder.Services.AddScoped<IRouteRepository, RouteRepository>();
 builder.Services.AddScoped<IRouteSegmentRepository, RouteSegmentRepository>();
 builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<IPassangerRepository, PassangerRepository>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
+builder.Services.AddLogging();
 
+builder.Services.AddHostedService<DeleteExpiredBookingsService>();
 
 builder.Services.AddDbContext<DataContext>(options =>
 {

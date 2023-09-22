@@ -19,6 +19,7 @@ namespace go_bus_backend.Data
         public DbSet<RouteSegment> RouteSegments { get; set; }
         public DbSet<TripSegment> TripSegments { get; set; }
         public DbSet<Passenger> Passengers { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,9 +42,24 @@ namespace go_bus_backend.Data
                 .HasForeignKey(ts => ts.RouteSegmentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Booking>()
+                .HasOne(ts => ts.DepartureBusStop)
+                .WithMany()
+                .HasForeignKey(ts => ts.DepartureBusStopId)
+                .OnDelete(DeleteBehavior.Restrict); // Change here
 
-           
-       
+            modelBuilder.Entity<Booking>()
+                .HasOne(ts => ts.ArrivalBusStop)
+                .WithMany()
+                .HasForeignKey(ts => ts.ArrivalBusStopId)
+                .OnDelete(DeleteBehavior.Restrict); // Change here
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(ts => ts.Trip)
+                .WithMany()
+                .HasForeignKey(ts => ts.TripId)
+                .OnDelete(DeleteBehavior.Restrict); // Change here
+
 
             base.OnModelCreating(modelBuilder);
         }
