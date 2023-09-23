@@ -7,36 +7,47 @@ using Microsoft.AspNetCore.Mvc;
 using Route = go_bus_backend.Models.Route;
 
 namespace go_bus_backend.Controllers;
+
 [Route("api/[controller]")]
 public class RouteController : ControllerBase
 {
     private readonly IRouteRepository _routeRepository;
     private readonly IRouteSegmentRepository _routeSegmentRepository;
     private readonly IBusStopRepository _busStopRepository;
-    
-    public RouteController(IRouteRepository routeRepository, IRouteSegmentRepository routeSegmentRepository,IBusStopRepository busStopRepository)
+
+    public RouteController(IRouteRepository routeRepository, IRouteSegmentRepository routeSegmentRepository,
+        IBusStopRepository busStopRepository)
     {
         _routeRepository = routeRepository;
         _routeSegmentRepository = routeSegmentRepository;
         _busStopRepository = busStopRepository;
     }
-    
-    
+
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddRouteRequestDto addRouteRequestDto)
     {
-        
         var routeSegments = new List<RouteSegment>();
-        foreach (var id in addRouteRequestDto.RouteSegmentIds)
+        foreach (var routeSegment in addRouteRequestDto.RouteSegments)
         {
-            var routeSegment = await _routeSegmentRepository.GetByIdAsync(id);
-            if (routeSegment == null)
+            var DepartureStop = await _busStopRepository.GetById(routeSegment.DepartureStopId);
+            var ArrivalStop = await _busStopRepository.GetById(routeSegment.ArrivalStopId);
+            if (DepartureStop == null || ArrivalStop == null)
             {
-                return NotFound($"Route with ID {id} not found");
+                return NotFound("Bus stop not found");
             }
-            routeSegments.Add(routeSegment);
+
+            var newRouteSegment = new RouteSegment()
+            {
+                DepartureStopId = routeSegment.DepartureStopId,
+                ArrivalStopId = routeSegment.ArrivalStopId,
+                Distance = routeSegment.Distance,
+                Duration = TimeSpan.FromMinutes(double.Parse(routeSegment.Duration))
+            };
+            var createdSegment = await _routeSegmentRepository.CreateAsync(newRouteSegment);
+            routeSegments.Add(createdSegment);
         }
-        
+
         var route = new Route()
         {
             RouteName = addRouteRequestDto.RouteName,
@@ -45,17 +56,17 @@ public class RouteController : ControllerBase
         var createdRoute = await _routeRepository.CreateAsync(route);
         return Ok(createdRoute);
     }
-    
+
     [HttpPut]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateRouteRequestDto updateRouteRequestDto)
     {
         var routeSegments = new List<RouteSegment>();
-        foreach (var segmentId  in updateRouteRequestDto.RouteSegmentIds)
+        foreach (var segmentId in updateRouteRequestDto.RouteSegmentIds)
         {
             var routeSegment = await _routeSegmentRepository.GetByIdAsync(segmentId);
             if (routeSegment != null) routeSegments.Add(routeSegment);
         }
-        
+
         var route = new Route()
         {
             RouteName = updateRouteRequestDto.RouteName,
@@ -64,14 +75,14 @@ public class RouteController : ControllerBase
         var updatedRoute = await _routeRepository.UpdateAsync(id, route);
         return Ok(updatedRoute);
     }
-    
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var deletedRoute = await _routeRepository.DeleteAsync(id);
         return Ok(deletedRoute);
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> GetRoutes([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
@@ -81,14 +92,14 @@ public class RouteController : ControllerBase
             pageSize);
         return Ok(routes);
     }
-    
+
     [HttpGet("GetById")]
     public async Task<IActionResult> GetById(int id)
     {
         var route = await _routeRepository.GetById(id);
         return Ok(route);
     }
-    
+
     [HttpGet("GetAllRoutes")]
     public async Task<IActionResult> GetAllRoutes()
     {

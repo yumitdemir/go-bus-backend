@@ -2,6 +2,7 @@
 
 public class AddRouteRequestDto
 {
+    
      public string RouteName { get; set; }
-    public ICollection<int> RouteSegmentIds { get; set; }
+    public ICollection<RouteSegmentCreateDto> RouteSegments { get; set; }
 }

@@ -65,7 +65,7 @@ public class TripController : ControllerBase
 
         var tripsCreated = new List<Trip>();
 
-        if (addTripRequestDto.DepartureDate != null)
+        if (addTripRequestDto.DepartureDate == null)
         {
             var tripSegments = new List<TripSegment>();
             if (route != null)
@@ -97,7 +97,9 @@ public class TripController : ControllerBase
 
         var startDate = DateTime.Parse(addTripRequestDto.StartDate);
         var lastAvailableDate = DateTime.Parse(addTripRequestDto.LastAvailableDate);
-        var unavailableDates = addTripRequestDto.UnavailableDates.Select(DateTime.Parse).ToList();
+        var unavailableDates = addTripRequestDto.UnavailableDates != null 
+            ? addTripRequestDto.UnavailableDates.Select(DateTime.Parse).ToList() 
+            : new List<DateTime>();
         var daysOfWeek = addTripRequestDto.DayOfWeek.Select(d => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), d)).ToList();
         var timesOfDay = addTripRequestDto.TimeOfDay.Select(TimeSpan.Parse).ToList();
         // Start from the StartDate and create trips until the LastAvailableDate
