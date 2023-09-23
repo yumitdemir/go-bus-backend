@@ -9,6 +9,8 @@ public interface IBookingRepository
     public Task<Booking?> GetById(int id);
 
     public  Task<Booking?> DeleteAsync(int id);
+    public Task<Booking?> GetBookingByPnrAndEmail(string pnr, string email);
+
 
 
 }

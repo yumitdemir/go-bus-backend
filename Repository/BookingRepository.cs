@@ -40,7 +40,10 @@ public class BookingRepository : IBookingRepository
 
     public async Task<Booking?> GetById(int id)
     {
-        var existingBooking = await _context.Bookings.FirstOrDefaultAsync(x => x.Id == id);
+        var existingBooking = await _context.Bookings.Include(x => x.Passengers).Include(x => x.ArrivalBusStop)
+            .Include(x => x.DepartureBusStop).Include(x => x.Trip).Include(x => x.Trip).ThenInclude(x => x.TripSegments)
+            .Include(x => x.Trip).ThenInclude(x => x.Bus).Include(x => x.Trip).ThenInclude(x => x.Route).ThenInclude(x=>x.RouteSegments)
+            .FirstOrDefaultAsync(x => x.Id == id);
         return existingBooking;
     }
 
@@ -63,8 +66,14 @@ public class BookingRepository : IBookingRepository
         await _context.SaveChangesAsync();
         return bookings;
     }
-  
 
-    
-    
+    public async Task<Booking?> GetBookingByPnrAndEmail(string pnr, string email)
+    {
+        var trip = await _context.Trips.FirstOrDefaultAsync(x => x.PNR == pnr);
+
+        var booking = await _context.Bookings.FirstOrDefaultAsync(x =>
+            trip != null && x.TripId == trip.Id && x.Passengers[0].Email == email);
+        booking = await GetById(booking.Id);
+        return booking;
+    }
 }

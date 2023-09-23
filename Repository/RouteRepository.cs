@@ -1,8 +1,6 @@
 ﻿using go_bus_backend.Data;
-using go_bus_backend.Dto.Driver;
 using go_bus_backend.Dto.Route;
 using go_bus_backend.Interfaces;
-using go_bus_backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Route = go_bus_backend.Models.Route;
 
@@ -73,7 +71,12 @@ public class RouteRepository : IRouteRepository
 
         return route;
     }
+    public async Task<List<Route>> GetAllRoutes()
+    {
+        var routes = await _context.Routes.ToListAsync();
 
+        return routes;
+    }
     public async Task<Route> CreateAsync(Route route)
     {
         await _context.Routes.AddAsync(route);

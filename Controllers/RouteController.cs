@@ -88,4 +88,11 @@ public class RouteController : ControllerBase
         var route = await _routeRepository.GetById(id);
         return Ok(route);
     }
+    
+    [HttpGet("GetAllRoutes")]
+    public async Task<IActionResult> GetAllRoutes()
+    {
+        var routes = await _routeRepository.GetAllRoutes();
+        return Ok(routes);
+    }
 }

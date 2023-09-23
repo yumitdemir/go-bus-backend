@@ -1,6 +1,5 @@
 ﻿using go_bus_backend.Data;
 using go_bus_backend.Dto;
-using go_bus_backend.Dto.Route;
 using go_bus_backend.Interfaces;
 using go_bus_backend.Models;
 using go_bus_backend.Models.Trip;
@@ -89,8 +88,16 @@ public class TripRepository : ITripRepository
     //
     public async Task<Trip> CreateAsync(Trip trip)
     {
+        string pnr;
+        do
+        {
+            pnr = PnrGenerator.GeneratePnr();
+        } while (await _context.Trips.AnyAsync(t => t.PNR == pnr)); // Check if the generated PNR already exists in the database
+
+        trip.PNR = pnr;
+
         await _context.Trips.AddAsync(trip);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(); 
         return trip;
     }
 
@@ -297,6 +304,8 @@ public class TripRepository : ITripRepository
 
         return startDate + duration;
     }
+    
+    
 
 
     public async Task<bool> CheckEnoughSpaceInBus(int departureStopId, int arrivalStopId, int tripId,
@@ -406,5 +415,15 @@ public class TripRepository : ITripRepository
 
         trips = tempTrips;
         return trips;
+    }
+}
+
+public class PnrGenerator
+{
+    public static string GeneratePnr()
+    {
+        var guid = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 10).ToUpper();
+        var timestamp = DateTime.UtcNow.Ticks.ToString().Substring(0, 10);
+        return $"{guid}{timestamp}";
     }
 }

@@ -35,12 +35,12 @@ public class BookingController : ControllerBase
             InitializationTime = DateTime.Now
         };
         var createdBooking = await _bookingRepository.CreateAsync(booking);
-        
+
         await _tripRepository.AddPassangerToTripAsync(initializeBookingRequestDto.TripId,
             initializeBookingRequestDto.DepartureBusStopId, initializeBookingRequestDto.ArrivalBusStopId,
             initializeBookingRequestDto.PassengerCount);
-        
-        
+
+
         return Ok(createdBooking);
     }
 
@@ -48,6 +48,11 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> Update([FromBody] UpdateBookingRequestDto updateBookingRequestDto)
     {
         var existingBooking = await _bookingRepository.GetById(updateBookingRequestDto.BookingId);
+        if (existingBooking == null)
+        {
+            return NotFound();
+        }
+
         existingBooking.Status = BookingStatus.Confirmed;
         var passengers = new List<Passenger>();
         foreach (var passenger in updateBookingRequestDto.Passengers)
@@ -57,7 +62,57 @@ public class BookingController : ControllerBase
         }
 
         existingBooking.Passengers = passengers;
-        var updatedBooking = await _bookingRepository.UpdateAsync(existingBooking,updateBookingRequestDto.BookingId);
+        var updatedBooking = await _bookingRepository.UpdateAsync(existingBooking, updateBookingRequestDto.BookingId);
+
+        return Ok(updatedBooking);
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> Delete([FromBody] int BookingId)
+    {
+        var updatedBooking = await _bookingRepository.DeleteAsync(BookingId);
+        return Ok();
+    }
+
+    [HttpPost]
+    [Route("GetBookingInformation")]
+    public async Task<IActionResult> GetBookingInformation([FromBody] GetBookingInformationRequestDto requestDto)
+    {
+        var booking = await _bookingRepository.GetBookingByPnrAndEmail(requestDto.pnr, requestDto.email);
+        var tripStart = await _tripRepository.getStartDateTimeOfTheTrip(booking.DepartureBusStopId, booking.TripId);
+        var tripEnd =
+            await _tripRepository.getEndDateTimeOfTheTrip(booking.ArrivalBusStopId, booking.DepartureBusStopId,
+                booking.TripId);
+        var email = booking.Passengers[0].Email;
+        var phone = booking.Passengers[0].PhoneNumber;
+        var bookingPassengerName = booking.Passengers[0].Name + " " + booking.Passengers[0].Surname;
+
+        var answerDto = new GetBookingInformationAnswerDto()
+        {
+            Booking = booking,
+            Email = email,
+            Phone = phone,
+            TripEnd = tripEnd,
+            TripStart = tripStart,
+            BookingPassengerName = bookingPassengerName
+        };
+
+        return Ok(answerDto);
+    }
+
+    [HttpPut]
+    [Route("CancelBooking")]
+    public async Task<IActionResult> CancelBooking([FromQuery] int bookingId)
+    {
+        var booking = await _bookingRepository.GetById(bookingId);
+        if (booking == null)
+            return NotFound();
+
+        booking.Status = BookingStatus.Cancelled;
+        await _tripRepository.AddPassangerToTripAsync(booking.TripId, booking.DepartureBusStopId, booking.ArrivalBusStopId,
+            -booking.PassengerCount);
+        var updatedBooking = await _bookingRepository.UpdateAsync(booking, bookingId);
+
 
         return Ok(updatedBooking);
     }

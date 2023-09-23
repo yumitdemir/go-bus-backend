@@ -18,5 +18,6 @@ namespace go_bus_backend.Models.Trip
         public decimal PricePerKm { get; set; }
         public Bus Bus { get; set; }
         public DateTime DepartureDate { get; set; }
+        public string PNR { get; set; }
     }
 }

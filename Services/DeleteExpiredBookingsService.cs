@@ -26,7 +26,7 @@ public class DeleteExpiredBookingsService : IHostedService, IDisposable
         var context = scope.ServiceProvider.GetRequiredService<DataContext>();
         var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
         var currentTime = DateTime.Now;
-        // Get bookings from your database that are older than 10 minutes
+        
         var oldBookings = context.Bookings
             .Where(b => b.InitializationTime.AddMinutes(10) < currentTime && b.Status == BookingStatus.Pending).ToList();
         foreach (var booking in oldBookings)

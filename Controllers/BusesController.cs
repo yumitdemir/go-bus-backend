@@ -74,4 +74,10 @@ public class BusesController : ControllerBase
         var bus = await _busRepository.GetById(id);
         return Ok(bus);
     }
+    [HttpGet("GetAllBuses")]
+    public async Task<IActionResult> GetAllBuses()
+    {
+        var buses = await _busRepository.GetAllBuses();
+        return Ok(buses);
+    }
 }

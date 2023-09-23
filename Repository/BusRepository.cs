@@ -85,7 +85,16 @@ public class BusRepository : IBusRepository
         var bus = await _context.Buses.FirstOrDefaultAsync(x => x.Id == id);
 
         return bus;
+
     }
+
+    public async Task<List<Bus>?> GetAllBuses()
+        {
+            var buses = await _context.Buses.ToListAsync();
+
+            return buses;
+        }
+
 
     public async Task<Bus> CreateAsync(Bus bus)
     {
