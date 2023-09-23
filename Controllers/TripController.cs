@@ -28,6 +28,11 @@ public class TripController : ControllerBase
     [Route("GetTripsByFilters")]
     public async Task<IActionResult> GetTripsByFilters([FromQuery] TripSearchRequestDto tripSearchRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var trips = await _tripRepository.GetAllTrips(tripSearchRequestDto.departureStopId,
             tripSearchRequestDto.arrivalStopId, DateOnly.Parse(tripSearchRequestDto.departureDate),
             tripSearchRequestDto.passangerCount);
@@ -59,26 +64,40 @@ public class TripController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddTripRequestDto addTripRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var route = await _routeRepository.GetById(addTripRequestDto.RouteId);
         var bus = await _busRepository.GetById(addTripRequestDto.BusId);
-    
+        if (route == null || bus == null)
+        {
+            return NotFound("Either the route or the bus was not found.");
+        }
 
         var tripsCreated = new List<Trip>();
-
-        if (addTripRequestDto.DepartureDate == null)
+        // Create not repeating trip
+        if (addTripRequestDto.DepartureDate != null)
         {
             var tripSegments = new List<TripSegment>();
-            if (route != null)
-                foreach (var routeSegment in route.RouteSegments)
+            foreach (var routeSegment in route.RouteSegments)
+            {
+                var tripSegment = new TripSegment()
                 {
-                    var tripSegment = new TripSegment()
-                    {
-                        RouteSegment = routeSegment,
-                    };
+                    RouteSegment = routeSegment,
+                };
 
-                    var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
-                    if (createdTripSegment != null) tripSegments.Add(createdTripSegment);
+                var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
+                if (createdTripSegment != null)
+                {
+                    tripSegments.Add(createdTripSegment);
                 }
+                else
+                {
+                    return BadRequest("Failed to create a Trip Segment");
+                }
+            }
 
 
             var trip = new Trip()
@@ -90,18 +109,32 @@ public class TripController : ControllerBase
                 TripSegments = tripSegments
             };
 
-           var createdTrip = await _tripRepository.CreateAsync(trip);
+            var createdTrip = await _tripRepository.CreateAsync(trip);
 
             return Ok(createdTrip);
         }
 
-        var startDate = DateTime.Parse(addTripRequestDto.StartDate);
-        var lastAvailableDate = DateTime.Parse(addTripRequestDto.LastAvailableDate);
-        var unavailableDates = addTripRequestDto.UnavailableDates != null 
-            ? addTripRequestDto.UnavailableDates.Select(DateTime.Parse).ToList() 
-            : new List<DateTime>();
-        var daysOfWeek = addTripRequestDto.DayOfWeek.Select(d => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), d)).ToList();
-        var timesOfDay = addTripRequestDto.TimeOfDay.Select(TimeSpan.Parse).ToList();
+        DateTime startDate;
+        DateTime lastAvailableDate;
+        List<DateTime> unavailableDates;
+        List<DayOfWeek> daysOfWeek;
+        List<TimeSpan> timesOfDay;
+        try
+        {
+            startDate = DateTime.Parse(addTripRequestDto.StartDate);
+            lastAvailableDate = DateTime.Parse(addTripRequestDto.LastAvailableDate);
+            unavailableDates = addTripRequestDto.UnavailableDates != null
+                ? addTripRequestDto.UnavailableDates.Select(DateTime.Parse).ToList()
+                : new List<DateTime>();
+            daysOfWeek = addTripRequestDto.DayOfWeek.Select(d => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), d)).ToList();
+            timesOfDay = addTripRequestDto.TimeOfDay.Select(TimeSpan.Parse).ToList();
+        }
+        catch (FormatException)
+        {
+            return BadRequest("Data is not in the correct form");
+        }
+
+
         // Start from the StartDate and create trips until the LastAvailableDate
         for (var date = startDate; date <= lastAvailableDate; date = date.AddDays(1))
         {
@@ -148,21 +181,40 @@ public class TripController : ControllerBase
     [HttpPut]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateTripRequestDto updateDriverRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var oldTrip = await _tripRepository.GetById(id);
+        if (oldTrip == null)
+            return NotFound();
+
         var route = await _routeRepository.GetById(updateDriverRequestDto.RouteId);
         var bus = await _busRepository.GetById(updateDriverRequestDto.BusId);
+        if (route == null || bus == null)
+        {
+            return NotFound("Either the route or the bus was not found.");
+        }
+
         var tripSegments = new List<TripSegment>();
 
-        if (route != null)
-            foreach (var routeSegment in route.RouteSegments)
+        foreach (var routeSegment in route.RouteSegments)
+        {
+            var tripSegment = new TripSegment()
             {
-                var tripSegment = new TripSegment()
-                {
-                    RouteSegment = routeSegment,
-                };
-                var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
-                if (createdTripSegment != null) tripSegments.Add(createdTripSegment);
+                RouteSegment = routeSegment,
+            };
+            var createdTripSegment = await _tripRepository.CreateTripSegmentAsync(tripSegment);
+            if (createdTripSegment != null)
+            {
+                tripSegments.Add(createdTripSegment);
             }
-
+            else
+            {
+                return BadRequest("Failed to create a Trip Segment");
+            }
+        }
 
         var trip = new Trip()
         {
@@ -180,6 +232,15 @@ public class TripController : ControllerBase
     [HttpDelete]
     public async Task<IActionResult> Delete([FromBody] int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var oldTrip = await _tripRepository.GetById(id);
+        if (oldTrip == null)
+            return NotFound();
+        
         var deletedTrip = await _tripRepository.DeleteAsync(id);
         return Ok(deletedTrip);
     }
@@ -189,6 +250,11 @@ public class TripController : ControllerBase
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var trips = await _tripRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, page,
             pageSize);
         return Ok(trips);
@@ -197,6 +263,11 @@ public class TripController : ControllerBase
     [HttpGet("GetById")]
     public async Task<IActionResult> GetById(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var trip = await _tripRepository.GetById(id);
         return Ok(trip);
     }
@@ -206,6 +277,11 @@ public class TripController : ControllerBase
     [Route("FindTrip")]
     public async Task<IActionResult?> FindTrips([FromQuery] FindTripRequestDto findTripRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var departureStop = await _busStopRepository.GetById(findTripRequestDto.DepartureBusStopId);
         var arrivalStop = await _busStopRepository.GetById(findTripRequestDto.ArrivalBusStopId);
 
@@ -224,6 +300,15 @@ public class TripController : ControllerBase
     public async Task<IActionResult?> AddPassangerToTrip(
         [FromBody] AddPassangerToTripRequestDto addPassangerToTripRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var oldTrip = await _tripRepository.GetById(addPassangerToTripRequestDto.TripId);
+        if (oldTrip == null)
+            return NotFound();
+
         var trip = await _tripRepository.AddPassangerToTripAsync(addPassangerToTripRequestDto.TripId,
             addPassangerToTripRequestDto.Passanger.Id, addPassangerToTripRequestDto.DepartureBusStopId,
             addPassangerToTripRequestDto.ArrivalBusStopId);

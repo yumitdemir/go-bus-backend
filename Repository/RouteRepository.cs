@@ -18,6 +18,7 @@ public class RouteRepository : IRouteRepository
     public async Task<RouteGetAllAsyncDto> GetAllAsync(string? filterOn = null, string? filterQuery = null,
         string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 10)
     {
+        
         var routes = _context.Routes
             .Include(r => r.RouteSegments).ThenInclude(r => r.ArrivalStop)
             .Include(r => r.RouteSegments).ThenInclude(r => r.DepartureStop)
@@ -99,6 +100,19 @@ public class RouteRepository : IRouteRepository
         return existingRoute;
     }
 
+    public async Task<bool> IsRouteInUse(int id)
+    {
+        var trip = await _context.Trips.FirstOrDefaultAsync(x => x.Route.Id == id);
+        if (trip != null)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
     public async Task<Route?> DeleteAsync(int id)
     {
         var existingRoute = await _context.Routes.Include(r => r.RouteSegments).ThenInclude(r => r.ArrivalStop)

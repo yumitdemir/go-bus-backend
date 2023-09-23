@@ -13,15 +13,20 @@ public class BusStopController : ControllerBase
 {
     private readonly IBusStopRepository _busStopRepository;
 
-    public BusStopController(IBusStopRepository busStopRepository )
+    public BusStopController(IBusStopRepository busStopRepository)
     {
         _busStopRepository = busStopRepository;
     }
-    
-    
+
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddBusStopRequestDto addBusStopRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var busStop = new BusStop()
         {
             Name = addBusStopRequestDto.Name,
@@ -36,6 +41,15 @@ public class BusStopController : ControllerBase
     [HttpPut]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateBusStopRequestDto updateBusStopRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var oldBusStop = await _busStopRepository.GetById(id);
+        if (oldBusStop == null)
+            NotFound();
+
         var busStop = new BusStop()
         {
             Name = updateBusStopRequestDto.Name,
@@ -50,6 +64,18 @@ public class BusStopController : ControllerBase
     [HttpDelete]
     public async Task<IActionResult> Delete([FromBody] int id)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+
+        var busstop = await _busStopRepository.GetById(id);
+        if (busstop == null)
+            return NotFound();
+
+
+        var isBusStopInUse = await _busStopRepository.IsBusStopInUse(id);
+        if (isBusStopInUse)
+            return BadRequest("Bus stop is currently in use and cannot be deleted");
         var deletedBusStop = await _busStopRepository.DeleteAsync(id);
         return Ok(deletedBusStop);
     }
@@ -58,16 +84,26 @@ public class BusStopController : ControllerBase
     [Route("GetAllBusStops")]
     public async Task<IActionResult> GetAllBusStops()
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var busStops = await _busStopRepository.GetAllWithoutFilterAsync();
         return Ok(busStops);
     }
 
-    
+
     [HttpGet]
     public async Task<IActionResult> GetBusStops([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var busStops = await _busStopRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, page,
             pageSize);
         return Ok(busStops);
@@ -76,6 +112,11 @@ public class BusStopController : ControllerBase
     [HttpGet("GetById")]
     public async Task<IActionResult> GetById(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var bus = await _busStopRepository.GetById(id);
         return Ok(bus);
     }

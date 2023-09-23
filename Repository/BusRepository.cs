@@ -36,27 +36,38 @@ public class BusRepository : IBusRepository
             if (sortBy.Equals("Brand", StringComparison.OrdinalIgnoreCase))
             {
                 buses = isAscending ? buses.OrderBy(x => x.Brand) : buses.OrderByDescending(x => x.Brand);
-            } else if (sortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
+            }
+            else if (sortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
             {
                 buses = isAscending ? buses.OrderBy(x => x.Id) : buses.OrderByDescending(x => x.Id);
-            } else if (sortBy.Equals("Model", StringComparison.OrdinalIgnoreCase))
+            }
+            else if (sortBy.Equals("Model", StringComparison.OrdinalIgnoreCase))
             {
                 buses = isAscending ? buses.OrderBy(x => x.Model) : buses.OrderByDescending(x => x.Model);
-            }else if (sortBy.Equals("Capacity", StringComparison.OrdinalIgnoreCase))
+            }
+            else if (sortBy.Equals("Capacity", StringComparison.OrdinalIgnoreCase))
             {
                 buses = isAscending ? buses.OrderBy(x => x.Capacity) : buses.OrderByDescending(x => x.Capacity);
             }
             else if (sortBy.Equals("Restroom Available", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.RestroomAvailable) : buses.OrderByDescending(x => x.RestroomAvailable);
-            } else if (sortBy.Equals("WiFi Available", StringComparison.OrdinalIgnoreCase))
+                buses = isAscending
+                    ? buses.OrderBy(x => x.RestroomAvailable)
+                    : buses.OrderByDescending(x => x.RestroomAvailable);
+            }
+            else if (sortBy.Equals("WiFi Available", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.WiFiAvailable) : buses.OrderByDescending(x => x.WiFiAvailable);
+                buses = isAscending
+                    ? buses.OrderBy(x => x.WiFiAvailable)
+                    : buses.OrderByDescending(x => x.WiFiAvailable);
             }
             else if (sortBy.Equals("Last Maintenance", StringComparison.OrdinalIgnoreCase))
             {
-                buses = isAscending ? buses.OrderBy(x => x.LastMaintenanceDate) : buses.OrderByDescending(x => x.LastMaintenanceDate);
-            }else if (sortBy.Equals("Plate Number", StringComparison.OrdinalIgnoreCase))
+                buses = isAscending
+                    ? buses.OrderBy(x => x.LastMaintenanceDate)
+                    : buses.OrderByDescending(x => x.LastMaintenanceDate);
+            }
+            else if (sortBy.Equals("Plate Number", StringComparison.OrdinalIgnoreCase))
             {
                 buses = isAscending ? buses.OrderBy(x => x.PlateNumber) : buses.OrderByDescending(x => x.PlateNumber);
             }
@@ -85,15 +96,27 @@ public class BusRepository : IBusRepository
         var bus = await _context.Buses.FirstOrDefaultAsync(x => x.Id == id);
 
         return bus;
-
     }
 
     public async Task<List<Bus>?> GetAllBuses()
-        {
-            var buses = await _context.Buses.ToListAsync();
+    {
+        var buses = await _context.Buses.ToListAsync();
 
-            return buses;
+        return buses;
+    }
+
+    public async Task<bool> IsBusInUse(int id)
+    {
+        var trip = await _context.Trips.FirstOrDefaultAsync(x => x.Bus.Id == id);
+        if (trip != null)
+        {
+            return true;
         }
+        else
+        {
+            return false;
+        }
+    }
 
 
     public async Task<Bus> CreateAsync(Bus bus)

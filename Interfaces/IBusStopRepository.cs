@@ -9,6 +9,8 @@ public interface IBusStopRepository
         string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 10);
 
     public Task<ICollection<BusStop>> GetAllWithoutFilterAsync();
+    public Task<bool> IsBusStopInUse(int id);
+
     public Task<BusStop?> GetById(int id);
     public Task<BusStop> CreateAsync(BusStop busStop);
     public Task<BusStop?> UpdateAsync(int id, BusStop busStop);

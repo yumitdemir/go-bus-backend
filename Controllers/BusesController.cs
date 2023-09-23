@@ -20,6 +20,10 @@ public class BusesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddBusRequestDto addBusRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var bus = new Bus()
         {
             Brand = addBusRequestDto.Brand,
@@ -37,6 +41,14 @@ public class BusesController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateBusRequestDto updateBusRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var oldBus = await _busRepository.GetById(id);
+        if (oldBus == null)
+            return NotFound();
+        
         var bus = new Bus()
         {
             Brand = updateBusRequestDto.Brand,
@@ -54,6 +66,19 @@ public class BusesController : ControllerBase
     [HttpDelete]
     public async Task<IActionResult> Delete([FromBody] int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var bus = await _busRepository.GetById(id);
+        if (bus == null)
+            return NotFound();
+
+        var isBusInUse = await _busRepository.IsBusInUse(id);
+        if (isBusInUse)
+        {
+            return BadRequest("Bus is currently in use and cannot be deleted");
+        }
         var deletedBus = await _busRepository.DeleteAsync(id);
         return Ok(deletedBus);
     }
@@ -63,6 +88,10 @@ public class BusesController : ControllerBase
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var buses = await _busRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, page,
             pageSize);
         return Ok(buses);
@@ -71,12 +100,21 @@ public class BusesController : ControllerBase
     [HttpGet("GetById")]
     public async Task<IActionResult> GetById(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        
         var bus = await _busRepository.GetById(id);
         return Ok(bus);
     }
     [HttpGet("GetAllBuses")]
     public async Task<IActionResult> GetAllBuses()
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var buses = await _busRepository.GetAllBuses();
         return Ok(buses);
     }

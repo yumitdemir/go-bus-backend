@@ -93,7 +93,19 @@ public class BusStopRepository : IBusStopRepository
         await _context.SaveChangesAsync();
         return busStop;
     }
-
+    public async Task<bool> IsBusStopInUse(int id)
+    {
+        var trips = await _context.Trips.Include(x => x.Route).ThenInclude(x => x.RouteSegments).ToListAsync();
+        
+        if (trips.Any(t => t.Route.RouteSegments.Any(rs => rs.ArrivalStopId == id)) || trips.Any(t => t.Route.RouteSegments.Any(rs => rs.DepartureStopId == id)) )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     public async Task<BusStop?> UpdateAsync(int id, BusStop busStop)
     {
         var existingBusStop = await _context.BusStops.FirstOrDefaultAsync(x => x.Id == id);

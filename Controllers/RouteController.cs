@@ -27,14 +27,30 @@ public class RouteController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddRouteRequestDto addRouteRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+
         var routeSegments = new List<RouteSegment>();
         foreach (var routeSegment in addRouteRequestDto.RouteSegments)
         {
-            var DepartureStop = await _busStopRepository.GetById(routeSegment.DepartureStopId);
-            var ArrivalStop = await _busStopRepository.GetById(routeSegment.ArrivalStopId);
-            if (DepartureStop == null || ArrivalStop == null)
+            var departureStop = await _busStopRepository.GetById(routeSegment.DepartureStopId);
+            var arrivalStop = await _busStopRepository.GetById(routeSegment.ArrivalStopId);
+            if (departureStop == null || arrivalStop == null)
             {
                 return NotFound("Bus stop not found");
+            }
+
+            TimeSpan duration;
+            try
+            {
+                duration = TimeSpan.FromMinutes(double.Parse(routeSegment.Duration));
+            }
+            catch (Exception)
+            {
+                return BadRequest("Invalid duration format");
             }
 
             var newRouteSegment = new RouteSegment()
@@ -42,7 +58,7 @@ public class RouteController : ControllerBase
                 DepartureStopId = routeSegment.DepartureStopId,
                 ArrivalStopId = routeSegment.ArrivalStopId,
                 Distance = routeSegment.Distance,
-                Duration = TimeSpan.FromMinutes(double.Parse(routeSegment.Duration))
+                Duration = duration
             };
             var createdSegment = await _routeSegmentRepository.CreateAsync(newRouteSegment);
             routeSegments.Add(createdSegment);
@@ -60,6 +76,15 @@ public class RouteController : ControllerBase
     [HttpPut]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateRouteRequestDto updateRouteRequestDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var oldRoute = await _routeRepository.GetById(id);
+        if (oldRoute == null)
+            return NotFound();
+
         var routeSegments = new List<RouteSegment>();
         foreach (var segmentId in updateRouteRequestDto.RouteSegmentIds)
         {
@@ -79,6 +104,21 @@ public class RouteController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var route = await _routeSegmentRepository.GetByIdAsync(id);
+        if (route == null)
+            return NotFound();
+
+        var isRouteInUse = await _routeRepository.IsRouteInUse(id);
+        if (isRouteInUse)
+        {
+            return BadRequest("Route is currently in use and cannot be deleted");
+        }
+
         var deletedRoute = await _routeRepository.DeleteAsync(id);
         return Ok(deletedRoute);
     }
@@ -88,6 +128,12 @@ public class RouteController : ControllerBase
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+
         var routes = await _routeRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, page,
             pageSize);
         return Ok(routes);
@@ -96,6 +142,11 @@ public class RouteController : ControllerBase
     [HttpGet("GetById")]
     public async Task<IActionResult> GetById(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var route = await _routeRepository.GetById(id);
         return Ok(route);
     }
@@ -103,6 +154,11 @@ public class RouteController : ControllerBase
     [HttpGet("GetAllRoutes")]
     public async Task<IActionResult> GetAllRoutes()
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var routes = await _routeRepository.GetAllRoutes();
         return Ok(routes);
     }

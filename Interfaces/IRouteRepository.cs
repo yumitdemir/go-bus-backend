@@ -10,7 +10,7 @@ public interface IRouteRepository
     public Task<Models.Route?> UpdateAsync(int id, Models.Route route);
     public Task<List<Route>> GetAllRoutes();
 
-
+    public Task<bool> IsRouteInUse(int id);
     public Task<Models.Route> CreateAsync(Models.Route route);
     public Task<Models.Route?> GetById(int id);
 

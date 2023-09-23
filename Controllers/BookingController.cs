@@ -25,6 +25,11 @@ public class BookingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] InitializeBookingRequestDto initializeBookingRequestDto)
     {
+        
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var booking = new Booking()
         {
             Trip = await _tripRepository.GetById(initializeBookingRequestDto.TripId),
@@ -47,6 +52,11 @@ public class BookingController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateBookingRequestDto updateBookingRequestDto)
     {
+        
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var existingBooking = await _bookingRepository.GetById(updateBookingRequestDto.BookingId);
         if (existingBooking == null)
         {
@@ -67,17 +77,16 @@ public class BookingController : ControllerBase
         return Ok(updatedBooking);
     }
 
-    [HttpDelete]
-    public async Task<IActionResult> Delete([FromBody] int BookingId)
-    {
-        var updatedBooking = await _bookingRepository.DeleteAsync(BookingId);
-        return Ok();
-    }
 
     [HttpPost]
     [Route("GetBookingInformation")]
     public async Task<IActionResult> GetBookingInformation([FromBody] GetBookingInformationRequestDto requestDto)
     {
+        
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var booking = await _bookingRepository.GetBookingByPnrAndEmail(requestDto.pnr, requestDto.email);
         var tripStart = await _tripRepository.getStartDateTimeOfTheTrip(booking.DepartureBusStopId, booking.TripId);
         var tripEnd =
@@ -104,6 +113,11 @@ public class BookingController : ControllerBase
     [Route("CancelBooking")]
     public async Task<IActionResult> CancelBooking([FromQuery] int bookingId)
     {
+        
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var booking = await _bookingRepository.GetById(bookingId);
         if (booking == null)
             return NotFound();
