@@ -34,7 +34,7 @@ public class TokenRepository : ITokenRepository
             _configuration["Jwt:Issuer"],
             _configuration["Jwt:Audience"],
             claims,
-            expires: DateTime.Now.AddMinutes(15),
+            expires: DateTime.Now.AddDays(15),
             signingCredentials:credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

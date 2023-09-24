@@ -234,7 +234,7 @@ public class TripController : ControllerBase
 
     [HttpDelete]
     [Authorize(Roles = "Writer")]
-    public async Task<IActionResult> Delete([FromBody] int id)
+    public async Task<IActionResult> Delete([FromQuery] int id)
     {
         if (!ModelState.IsValid)
         {
@@ -251,7 +251,7 @@ public class TripController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Reader")]
-    public async Task<IActionResult> GetDrivers([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
+    public async Task<IActionResult> GetTrips([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -266,7 +266,6 @@ public class TripController : ControllerBase
     }
 
     [HttpGet("GetById")]
-    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById(int id)
     {
         if (!ModelState.IsValid)

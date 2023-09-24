@@ -86,7 +86,6 @@ public class BusStopController : ControllerBase
 
     [HttpGet]
     [Route("GetAllBusStops")]
-    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> GetAllBusStops()
     {
         if (!ModelState.IsValid)
@@ -116,7 +115,6 @@ public class BusStopController : ControllerBase
     }
 
     [HttpGet("GetById")]
-    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById(int id)
     {
         if (!ModelState.IsValid)
