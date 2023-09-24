@@ -4,6 +4,7 @@ using go_bus_backend.Dto.Driver;
 using go_bus_backend.Interfaces;
 using go_bus_backend.Models;
 using go_bus_backend.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace go_bus_backend.Controllers;
@@ -20,6 +21,7 @@ public class BusStopController : ControllerBase
 
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] AddBusStopRequestDto addBusStopRequestDto)
     {
         if (!ModelState.IsValid)
@@ -39,6 +41,7 @@ public class BusStopController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateBusStopRequestDto updateBusStopRequestDto)
     {
         if (!ModelState.IsValid)
@@ -62,6 +65,7 @@ public class BusStopController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Delete([FromBody] int id)
     {
         if (!ModelState.IsValid)
@@ -82,6 +86,7 @@ public class BusStopController : ControllerBase
 
     [HttpGet]
     [Route("GetAllBusStops")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> GetAllBusStops()
     {
         if (!ModelState.IsValid)
@@ -95,6 +100,7 @@ public class BusStopController : ControllerBase
 
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetBusStops([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -110,6 +116,7 @@ public class BusStopController : ControllerBase
     }
 
     [HttpGet("GetById")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById(int id)
     {
         if (!ModelState.IsValid)

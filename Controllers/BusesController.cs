@@ -1,6 +1,7 @@
 ﻿using go_bus_backend.Dto;
 using go_bus_backend.Interfaces;
 using go_bus_backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace go_bus_backend.Controllers;
@@ -18,6 +19,7 @@ public class BusesController : ControllerBase
 
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] AddBusRequestDto addBusRequestDto)
     {
         if (!ModelState.IsValid)
@@ -39,6 +41,7 @@ public class BusesController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateBusRequestDto updateBusRequestDto)
     {
         if (!ModelState.IsValid)
@@ -64,6 +67,8 @@ public class BusesController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize(Roles = "Writer")]
+
     public async Task<IActionResult> Delete([FromBody] int id)
     {
         if (!ModelState.IsValid)
@@ -84,6 +89,7 @@ public class BusesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetBuses([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -98,6 +104,7 @@ public class BusesController : ControllerBase
     }
 
     [HttpGet("GetById")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById(int id)
     {
         if (!ModelState.IsValid)
@@ -109,6 +116,7 @@ public class BusesController : ControllerBase
         return Ok(bus);
     }
     [HttpGet("GetAllBuses")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> GetAllBuses()
     {
         if (!ModelState.IsValid)

@@ -2,6 +2,7 @@
 using go_bus_backend.Interfaces;
 using go_bus_backend.Models;
 using go_bus_backend.Models.Trip;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Route = Microsoft.AspNetCore.Routing.Route;
 
@@ -62,6 +63,7 @@ public class TripController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] AddTripRequestDto addTripRequestDto)
     {
         if (!ModelState.IsValid)
@@ -179,6 +181,7 @@ public class TripController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateTripRequestDto updateDriverRequestDto)
     {
         if (!ModelState.IsValid)
@@ -230,6 +233,7 @@ public class TripController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Delete([FromBody] int id)
     {
         if (!ModelState.IsValid)
@@ -240,12 +244,13 @@ public class TripController : ControllerBase
         var oldTrip = await _tripRepository.GetById(id);
         if (oldTrip == null)
             return NotFound();
-        
+
         var deletedTrip = await _tripRepository.DeleteAsync(id);
         return Ok(deletedTrip);
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetDrivers([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -261,6 +266,7 @@ public class TripController : ControllerBase
     }
 
     [HttpGet("GetById")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById(int id)
     {
         if (!ModelState.IsValid)
@@ -271,48 +277,5 @@ public class TripController : ControllerBase
         var trip = await _tripRepository.GetById(id);
         return Ok(trip);
     }
-
-
-    [HttpGet]
-    [Route("FindTrip")]
-    public async Task<IActionResult?> FindTrips([FromQuery] FindTripRequestDto findTripRequestDto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        var departureStop = await _busStopRepository.GetById(findTripRequestDto.DepartureBusStopId);
-        var arrivalStop = await _busStopRepository.GetById(findTripRequestDto.ArrivalBusStopId);
-
-        List<Trip>? trips = null;
-        if (departureStop != null && arrivalStop != null)
-        {
-            trips = await _tripRepository.FindTripsByBusStops(departureStop, arrivalStop);
-        }
-
-        return Ok(trips);
-    }
-
-
-    [HttpPut]
-    [Route("AddPassangerToTrip")]
-    public async Task<IActionResult?> AddPassangerToTrip(
-        [FromBody] AddPassangerToTripRequestDto addPassangerToTripRequestDto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        var oldTrip = await _tripRepository.GetById(addPassangerToTripRequestDto.TripId);
-        if (oldTrip == null)
-            return NotFound();
-
-        var trip = await _tripRepository.AddPassangerToTripAsync(addPassangerToTripRequestDto.TripId,
-            addPassangerToTripRequestDto.Passanger.Id, addPassangerToTripRequestDto.DepartureBusStopId,
-            addPassangerToTripRequestDto.ArrivalBusStopId);
-
-        return Ok(trip);
-    }
+  
 }

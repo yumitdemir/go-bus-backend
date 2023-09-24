@@ -2,6 +2,7 @@
 using go_bus_backend.Dto.Route;
 using go_bus_backend.Interfaces;
 using go_bus_backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Route = go_bus_backend.Models.Route;
@@ -25,6 +26,7 @@ public class RouteController : ControllerBase
 
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] AddRouteRequestDto addRouteRequestDto)
     {
         if (!ModelState.IsValid)
@@ -74,6 +76,7 @@ public class RouteController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateRouteRequestDto updateRouteRequestDto)
     {
         if (!ModelState.IsValid)
@@ -102,6 +105,7 @@ public class RouteController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Delete(int id)
     {
         if (!ModelState.IsValid)
@@ -124,6 +128,7 @@ public class RouteController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetRoutes([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -140,6 +145,7 @@ public class RouteController : ControllerBase
     }
 
     [HttpGet("GetById")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById(int id)
     {
         if (!ModelState.IsValid)
@@ -152,6 +158,7 @@ public class RouteController : ControllerBase
     }
 
     [HttpGet("GetAllRoutes")]
+    [Authorize(Roles = "Reader,Writer")]
     public async Task<IActionResult> GetAllRoutes()
     {
         if (!ModelState.IsValid)

@@ -86,3 +86,5 @@ C:\Users\umitd\OneDrive\Desktop\Project-Bus\go-bus-backend\go-bus-backend\bin\De
 C:\Users\umitd\OneDrive\Desktop\Project-Bus\go-bus-backend\go-bus-backend\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\umitd\OneDrive\Desktop\Project-Bus\go-bus-backend\go-bus-backend\bin\Debug\net7.0\runtimes\browser\lib\net7.0\System.Text.Encodings.Web.dll
 C:\Users\umitd\OneDrive\Desktop\Project-Bus\go-bus-backend\go-bus-backend\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
+C:\Users\umitd\OneDrive\Desktop\Project-Bus\go-bus-backend\go-bus-backend\bin\Debug\net7.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\umitd\OneDrive\Desktop\Project-Bus\go-bus-backend\go-bus-backend\bin\Debug\net7.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll

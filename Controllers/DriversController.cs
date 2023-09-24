@@ -1,6 +1,7 @@
 ﻿using go_bus_backend.Dto.Driver;
 using go_bus_backend.Interfaces;
 using go_bus_backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ public class DriversController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] AddDriverRequestDto addDriverRequestDto)
     {
         if (!ModelState.IsValid)
@@ -39,6 +41,7 @@ public class DriversController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult?> Update(int id, [FromBody] UpdateDriverRequestDto updateDriverRequestDto)
     {
         if (!ModelState.IsValid)
@@ -65,6 +68,7 @@ public class DriversController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Delete([FromBody] int id)
     {
         if (!ModelState.IsValid)
@@ -81,6 +85,7 @@ public class DriversController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetDrivers([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -96,6 +101,7 @@ public class DriversController : ControllerBase
     }
 
     [HttpGet("GetById")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById(int id)
     {
         if (!ModelState.IsValid)
