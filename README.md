@@ -1,3 +1,14 @@
+## Skills Acquired
+
+During the development of this project, I gained hands-on experience and in-depth knowledge in the following areas:
+
+- **Entity Framework**: Leveraged this object-relational mapper (ORM) to work with databases using .NET objects.
+- **JSON Web Token (JWT)**: Implemented JWT for secure and reliable user authentication.
+- **Tailwind CSS**: Utilized this utility-first CSS framework for rapid UI development.
+- **React.js**: Used this JavaScript library for building user interfaces, particularly single page applications.
+- **Database Design**: Designed and managed robust and scalable databases to store and retrieve data efficiently.
+- **ASP.NET Web API**: Developed RESTful APIs using ASP.NET Web API for the client-side web application.
+- **CORS**: Handled Cross-Origin Resource Sharing (CORS) to resolve security restrictions between the web API and the client-side application.
 
 ## Short Description
 Go Bus is a bus booking website that I developed as a personal project. The main functionality of the website is to provide a platform for users to book bus tickets. Users can select their departure and arrival bus stops, choose the departure date, view the available buses, and then proceed to book their tickets. The website is designed to be fully responsive, providing a seamless user experience across different devices.
